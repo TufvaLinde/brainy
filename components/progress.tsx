@@ -3,8 +3,8 @@
 import { useEffect, useEffectEvent, useRef } from "react"
 import { articleElement } from "@/lib/dom"
 
-/** How far down the article the reader is: a hairline along the top of the
- *  screen, saved a second after the scrolling stops, or as the reader leaves,
+/** How far down the article the user is: a hairline along the top of the
+ *  screen, saved a second after the scrolling stops, or as the user leaves,
  *  and where the article opens next time unless it was read to the end. Read
  *  means scrolled past: the bottom of the screen has reached that far. Opening
  *  it saves nothing, so one read to the end stays read until it is scrolled again. */

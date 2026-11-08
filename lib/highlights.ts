@@ -1,5 +1,5 @@
 /**
- * What the reader marked in an article: a quote of its text (see render in
+ * What the user marked in an article: a quote of its text (see render in
  * lib/markdown), the words either side that tell it apart, where it was, and a
  * note if one was written. A quote is found by its words, not where it was, so
  * it stays found when the article is read again by newer rules; one that can't

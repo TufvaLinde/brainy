@@ -281,7 +281,7 @@ export async function restoreLibrary(upload: string, head: Uint8Array): Promise<
   const json = new TextDecoder().decode(await contentsOf(upload, listing))
   let library: { version: number; articles: Listed[]; feeds?: { url: string; listed: string[] }[] }
   try { library = JSON.parse(json) } catch { throw new ImportError("That archive's library.json couldn't be read") }
-  if (library.version !== VERSION && library.version !== 2) throw new ImportError("That archive is from another version of Reader")
+  if (library.version !== VERSION && library.version !== 2) throw new ImportError("That archive is from another version of Brainy")
   const file = (path: string) => {
     const entry = entries.get(path)
     if (!entry) throw damaged(path)

@@ -2,7 +2,7 @@
  * Saving articles, and reading them. Each is kept whole the moment it comes:
  * its source, the file or page as it came, and on its first reading, every
  * picture it names on the web; and read from them again whenever the rules
- * that read articles change, so a better reader reaches every article, as it
+ * that read articles change, so better reading reaches every article, as it
  * was when it was saved. Reading again never goes to the web. Persistence
  * lives in db.
  */
@@ -19,14 +19,14 @@ import { removeUpload, takeUpload } from "@/lib/storage"
 import { fetchLink, keepImages, siteArticle } from "@/lib/web"
 
 /** Which rules read articles: lib/formats, the converters it calls, the
- *  sites' readers in lib/web, lib/markdown, and the pictures lib/web points
+ *  site parsers in lib/web, lib/markdown, and the pictures lib/web points
  *  at. Raise it with any change to what they make of a source, or to render,
  *  which the text highlights quote is read from, and every article is read
  *  again from its source. Upgrading a library that reads or writes articles
  *  is such a change, so package.json pins them. */
 const CONVERTER = 12
 
-const READERS = 6
+const PARALLEL_READS = 6
 export const isLink = (text: string) => /^https?:\/\//i.test(text) && URL.canParse(text)
 
 const linksToSave = (links: ArticleLink[]): db.SavedLink[] =>
@@ -53,7 +53,7 @@ async function drain(): Promise<void> {
     }
   }))
   for (;;) {
-    const claims = await db.claimWork(CONVERTER, READERS)
+    const claims = await db.claimWork(CONVERTER, PARALLEL_READS)
     if (!claims.length) return
     await Promise.all(claims.map(work))
   }
@@ -134,7 +134,7 @@ export async function read(source: db.Source, kept: Map<string, string>, capture
   }
 }
 
-/** A page as the reader's own browser has it, sent by the bookmarklet. */
+/** A page as the user's own browser has it, sent by the bookmarklet. */
 export async function savePage(url: string, html: string): Promise<number> {
   const source = { bytes: new TextEncoder().encode(html), name: "", type: "text/html; charset=utf-8", url }
   return saveSource(url, { title: url, site: new URL(url).hostname }, source)
@@ -170,9 +170,9 @@ export async function saveFile(upload: string, name: string, type: string): Prom
   }
 }
 
-/** A source the reader sent, in the library from the moment it is kept, and
+/** A source the user sent, in the library from the moment it is kept, and
  *  read at once; if it can't be, it stays, with why, to be read again when
- *  the rules change, and the reader is told. */
+ *  the rules change, and the user is told. */
 async function saveSource(url: string, about: { title: string; site: string }, source: db.Source): Promise<number> {
   const claim = await db.addSource(url, about, source, CONVERTER)
   const failed = await work(claim)

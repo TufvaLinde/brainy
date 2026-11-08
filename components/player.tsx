@@ -27,7 +27,7 @@ const SPEEDS = [0.75, 1, 1.25, 1.5, 1.75, 2, 2.5].map((value) => ({ value, label
 const WORDS_PER_MINUTE = 160
 /** Sentences fetched ahead of the one playing, so the next is ready when it ends. */
 const AHEAD = 3
-/** Keys that scroll the page: pressed, the reader is looking elsewhere. */
+/** Keys that scroll the page: pressed, the user is looking elsewhere. */
 const SCROLL_KEYS = new Set(["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " "])
 /** A sentence in parts of at most 1,000 characters, broken between words where
  *  it can be: the speech route takes 5,000, and a shorter part is said sooner. */
@@ -94,7 +94,7 @@ function bringIntoView(range: Range, always = false) {
 
 /** Reads the article aloud a sentence at a time, fetching the next few while
  *  one plays, marking the sentence and the word being said, and keeping them in
- *  view until the reader scrolls elsewhere. Outside React, as it holds an audio
+ *  view until the user scrolls elsewhere. Outside React, as it holds an audio
  *  element and a frame loop; the player draws its state. */
 class Narrator {
   state: State = { status: "stopped", at: 0, speed: 1, voice: VOICES[0].value, following: true, error: "" }
@@ -136,8 +136,8 @@ class Narrator {
     this.clips = clipsOf(this.blocks)
     this.set({
       following: true,
-      speed: Number(localStorage.getItem("reader.speed")) || 1,
-      voice: VOICES.find((v) => v.value === localStorage.getItem("reader.voice"))?.value ?? VOICES[0].value,
+      speed: Number(localStorage.getItem("brainy.speed")) || 1,
+      voice: VOICES.find((v) => v.value === localStorage.getItem("brainy.voice"))?.value ?? VOICES[0].value,
     })
     if (navigator.mediaSession && typeof MediaMetadata !== "undefined") navigator.mediaSession.metadata = new MediaMetadata({ title: this.about.title, artist: this.about.site })
     this.mediaKeys(true)
@@ -306,7 +306,7 @@ class Narrator {
 
   setSpeed = (speed: number) => {
     if (this.audio) this.audio.playbackRate = speed
-    localStorage.setItem("reader.speed", String(speed))
+    localStorage.setItem("brainy.speed", String(speed))
     this.set({ speed })
   }
 
@@ -317,7 +317,7 @@ class Narrator {
   }
 
   setVoice = (voice: string) => {
-    localStorage.setItem("reader.voice", voice)
+    localStorage.setItem("brainy.voice", voice)
     this.requests.abort()
     this.requests = new AbortController()
     this.spoken.clear()
@@ -342,7 +342,7 @@ class Narrator {
 
 /** Listen, in a pill at the foot of the screen; while the voice reads, the
  *  player, as in Readwise Reader: back, play or pause, forward, the time left,
- *  Return once the reader has scrolled away, speed, voice and stop. A click on
+ *  Return once the user has scrolled away, speed, voice and stop. A click on
  *  a paragraph jumps there. Keys: p plays or pauses, P stops, ← and → move a
  *  sentence, , and . slow down and speed up; the Mac's media keys work too. */
 export function Player({ id, title, site, listenedTo }: { id: number; title: string; site: string; listenedTo: number | null }) {

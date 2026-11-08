@@ -323,7 +323,7 @@ export function Library({
             ref={(a) => a?.setAttribute("href", bookmarklet(window.location.origin))}
             className="font-medium text-foreground"
           >
-            Save to Reader
+            Save to Brainy
           </a>{" "}
           to your bookmarks bar to save the page you’re on, as you see it.
         </p>

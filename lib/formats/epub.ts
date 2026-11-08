@@ -240,7 +240,7 @@ function target(href: string, from: string): Place | null {
 }
 
 const key = ({ path, id }: Place) => `${path}#${id}`
-const anchorOf = (place: Place) => `reader-${createHash("sha256").update(key(place)).digest("hex").slice(0, 20)}`
+const anchorOf = (place: Place) => `brainy-${createHash("sha256").update(key(place)).digest("hex").slice(0, 20)}`
 
 /** XHTML as an HTML parser reads it: there, an element closed in its own
  *  tag, as a page's mark <a id="p5"/> is, would hold all that follows it. */
@@ -290,7 +290,7 @@ type Rule = { selectors: string[]; style: Style; important: Style }
 
 /** A stylesheet's rules in order, those it imports where it imports them, as a
  *  reading app on a screen applies them: none for print, or for screens of
- *  some size only, which a reader's may not be. */
+ *  some size only, which a user's may not be. */
 function rulesOf(css: string, imported: (href: string) => Rule[]): Rule[] {
   const forScreens = (media: string) => !media.includes("(") && (!media.trim() || /\b(?:all|screen)\b/i.test(media))
   return statements(css.replace(/\/\*[\s\S]*?\*\//g, "")).flatMap(({ prelude, block }): Rule[] => {
@@ -376,7 +376,7 @@ function declared(property: string, value: string): Style {
   return {}
 }
 
-/** Selectors that match only as the reader acts, or name parts of elements, which a page as it is read has none of. */
+/** Selectors that match only as the user acts, or name parts of elements, which a page as it is read has none of. */
 const DYNAMIC = /::|\||:(?:hover|focus|focus-within|focus-visible|active|visited|link|target|checked|before|after|first-letter|first-line|selection|lang)\b/
 
 /** A selector's specificity as one number: its ids, its classes, attributes
@@ -671,7 +671,7 @@ function mark(element: Element, id: string): string {
   const anchorBy = (node: Node | null, step: "previousSibling" | "nextSibling") => {
     while (node?.nodeType === 3 && !node.textContent!.trim()) node = node[step]
     const anchor = node as Element | null
-    return anchor?.nodeType === 1 && anchor.localName === "a" && /^reader-/.test(anchor.id) ? anchor.id : null
+    return anchor?.nodeType === 1 && anchor.localName === "a" && /^brainy-/.test(anchor.id) ? anchor.id : null
   }
   const place = element.ownerDocument.createElement("a")
   place.id = id

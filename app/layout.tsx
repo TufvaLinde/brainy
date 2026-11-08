@@ -1,4 +1,4 @@
-import { BookOpen } from "lucide-react"
+import { Brain } from "lucide-react"
 import type { Metadata } from "next"
 import Link from "next/link"
 import Script from "next/script"
@@ -8,7 +8,7 @@ import { applyAppearance, KEY } from "@/lib/appearance"
 import "./globals.css"
 
 export const metadata: Metadata = {
-  title: "Reader",
+  title: "Brainy",
   description: "Save a link, read it clean, listen to it.",
   // An article's links don't tell their sites what else is saved here.
   referrer: "no-referrer",
@@ -30,8 +30,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div className="relative isolate mx-auto min-h-svh max-w-(--column) px-6 pb-32">
             <header className="flex items-center justify-between py-6">
               <Link className="flex items-center gap-2 font-medium text-lg" href="/">
-                <BookOpen className="size-5" />
-                Reader
+                <Brain className="size-5" />
+                Brainy
               </Link>
               <AppearanceMenu />
             </header>

@@ -7,7 +7,7 @@ export async function GET() {
   return new Response(libraryArchive(), {
     headers: {
       "content-type": "application/zip",
-      "content-disposition": `attachment; filename="Reader library ${day}.zip"`,
+      "content-disposition": `attachment; filename="Brainy library ${day}.zip"`,
       "cache-control": "no-store",
     },
   })

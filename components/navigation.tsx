@@ -166,7 +166,7 @@ function depthsOf(entries: Entry[]): number[] {
 }
 
 /** A note's mark, a superscript that links to a place in the book (see
- *  lib/formats/epub), opens the note in a popover beside it, so the reader keeps
+ *  lib/formats/epub), opens the note in a popover beside it, so the user keeps
  *  their place; the note where the book has it is a link away. */
 export function Notes() {
   const [note, setNote] = useState<{ mark: Element; html: string; href: string } | null>(null)
@@ -175,7 +175,7 @@ export function Notes() {
   useEffect(() => {
     const article = articleElement()
     const onClick = (event: MouseEvent) => {
-      const link = (event.target as Element).closest('a[href^="#reader-"]')
+      const link = (event.target as Element).closest('a[href^="#brainy-"]')
       if (!link || link.children.length !== 1 || link.firstElementChild!.localName !== "sup") return
       const href = link.getAttribute("href")!
       const block = document.getElementById(href.slice(1))?.closest("p, li, blockquote, dd, td")

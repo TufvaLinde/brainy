@@ -1,5 +1,5 @@
 /**
- * What every reader of a file shares: the size limit, and bytes read within
+ * What every parser of a file shares: the size limit, and bytes read within
  * it; text in its own encoding, and as HTML; zips opened within a limit of
  * their own; pictures told by their bytes and kept at addresses of their own;
  * converters run where they can be stopped; and failures said plainly.
@@ -21,7 +21,7 @@ export const MAX_BYTES = 1024 * 1024 * 1024
  *  archived article's source and the pictures read out of it. */
 const MAX_UNZIPPED = 2 * MAX_BYTES
 
-/** An import failure that can be shown directly to the reader. */
+/** An import failure that can be shown directly to the user. */
 export class ImportError extends Error {}
 export class SizeLimit extends ImportError {}
 
@@ -61,7 +61,7 @@ export function unzip(bytes: Uint8Array, only?: string[]): Record<string, Uint8A
     filter: (file) => {
       if (wanted && !wanted.has(file.name)) return false
       total += Math.max(file.size, file.originalSize)
-      if (total > MAX_UNZIPPED) throw new SizeLimit("The archive expands beyond the reader's size limit")
+      if (total > MAX_UNZIPPED) throw new SizeLimit("The archive expands beyond brainy's size limit")
       return true
     },
   })

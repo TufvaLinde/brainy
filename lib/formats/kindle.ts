@@ -59,7 +59,7 @@ export async function kindleToHtml(
     }
   }
 
-  const directory = await mkdtemp(join(tmpdir(), "reader-book-"))
+  const directory = await mkdtemp(join(tmpdir(), "brainy-book-"))
   try {
     const book = await inProcess<Parsed>(KINDLE, { bytes, directory, kf8 })
     const media = new Map(book.media)

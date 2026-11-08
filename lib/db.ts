@@ -1,4 +1,4 @@
-/** The Reader's persistence: what it knows of each article, in PostgreSQL,
+/** Brainy's persistence: what it knows of each article, in PostgreSQL,
  *  with its connections, schema and atomic changes; each article's files, in
  *  the bucket (see lib/storage), each put there before the database names it,
  *  so it never names one that isn't kept; and the shapes of what it stores,
@@ -42,7 +42,7 @@ export type Article = ArticleSummary & {
   /** The type its source is served as: a recording's says it plays. */
   type: string | null
   minutes: number; listenedTo: number | null; highlights: Highlight[]
-  /** The reader's note on the whole article, or "". */
+  /** The user's note on the whole article, or "". */
   note: string
 }
 
@@ -62,7 +62,7 @@ export type KeptArticle = ArticleMetadata & {
 
 type Run = <T extends QueryResultRow = QueryResultRow>(sql: string, values?: unknown[]) => Promise<QueryResult<T>>
 type Database = { pool: Pool; ready?: Promise<void> }
-const shared = globalThis as typeof globalThis & { readerDatabase?: Database }
+const shared = globalThis as typeof globalThis & { brainyDatabase?: Database }
 
 function pool(url: string): Pool {
   const ca = process.env.DATABASE_CA ?? process.env.POSTGRES_CA
@@ -86,10 +86,10 @@ function pool(url: string): Pool {
 }
 
 function database(): Database {
-  if (shared.readerDatabase) return shared.readerDatabase
+  if (shared.brainyDatabase) return shared.brainyDatabase
   const url = process.env.DATABASE_URL ?? process.env.POSTGRES_URL
   if (!url) throw new Error("Set DATABASE_URL to a PostgreSQL connection URL")
-  return shared.readerDatabase = { pool: pool(url) }
+  return shared.brainyDatabase = { pool: pool(url) }
 }
 
 async function atomic<T>(connection: Pool, work: (run: Run) => Promise<T>): Promise<T> {
@@ -111,9 +111,9 @@ async function atomic<T>(connection: Pool, work: (run: Run) => Promise<T>): Prom
  *  to be dropped and made afresh. Concurrent processes take turns. */
 async function ready(): Promise<void> {
   const db = database()
-  const version = "select obj_description(oid, 'pg_namespace') as version from pg_namespace where nspname = 'reader'"
+  const version = "select obj_description(oid, 'pg_namespace') as version from pg_namespace where nspname = 'brainy'"
   const check = (made: { version: string | null }) => {
-    if (made.version !== VERSION) throw new Error("The database's reader schema was made by another version of Reader: drop it to start afresh")
+    if (made.version !== VERSION) throw new Error("The database's brainy schema was made by another version of brainy: drop it to start afresh")
   }
   return db.ready ??= (async () => {
     // Open the retained pair together; otherwise the first navigation races
@@ -125,11 +125,11 @@ async function ready(): Promise<void> {
     const { rows: [made] } = await db.pool.query<{ version: string | null }>(version)
     if (made) return check(made)
     await atomic(db.pool, async run => {
-      await run("select pg_advisory_xact_lock(hashtext('reader/schema'))")
+      await run("select pg_advisory_xact_lock(hashtext('brainy/schema'))")
       // Another process may have created it while this one waited for the lock.
       const { rows: [made] } = await run<{ version: string | null }>(version)
       if (made) check(made)
-      else await run(`create schema reader; comment on schema reader is '${VERSION}'; ${SCHEMA}`)
+      else await run(`create schema brainy; comment on schema brainy is '${VERSION}'; ${SCHEMA}`)
     })
   })().catch(error => { db.ready = undefined; throw error })
 }
@@ -146,7 +146,7 @@ const LISTED = `id, url, title, site, image, excerpt, location, progress, format
  *  none archived or trashed. */
 async function insertLinks(run: Run, links: SavedLink[], listedIn?: Location): Promise<void> {
   if (!links.length) return
-  await run(`insert into reader.articles (url, title, site, location, moved_at)
+  await run(`insert into brainy.articles (url, title, site, location, moved_at)
     select url, title, site, $4, now() - n * interval '1 millisecond'
     from unnest($1::text[], $2::text[], $3::text[]) with ordinality as link(url, title, site, n)
     on conflict (url) do ${listedIn ? "nothing" : `update set location = 'inbox', moved_at = excluded.moved_at, error = null,
@@ -158,17 +158,17 @@ async function insertLinks(run: Run, links: SavedLink[], listedIn?: Location): P
  *  last time go to the Feed, so none archived, trashed or deleted since comes
  *  back. */
 async function keepFeed(run: Run, url: string, links: SavedLink[]): Promise<void> {
-  const { rows: [feed] } = await run<{ listed: string[] }>("select listed from reader.feeds where url = $1 for update", [url])
+  const { rows: [feed] } = await run<{ listed: string[] }>("select listed from brainy.feeds where url = $1 for update", [url])
   const listed = new Set(feed?.listed)
   await insertLinks(run, links.filter(link => !listed.has(link.url)), "feed")
-  await run(`insert into reader.feeds (url, listed, checked_at) values ($1, $2, now())
+  await run(`insert into brainy.feeds (url, listed, checked_at) values ($1, $2, now())
     on conflict (url) do update set listed = excluded.listed, checked_at = excluded.checked_at`, [url, links.map(link => link.url)])
 }
 
 /** The feeds not read for an hour, each marked read now, so no other request reads it too. */
 export async function claimFeeds(): Promise<string[]> {
-  const { rows } = await query<{ url: string }>(`update reader.feeds set checked_at = now() where url in (
-    select url from reader.feeds where checked_at is null or checked_at < now() - interval '1 hour' for update skip locked)
+  const { rows } = await query<{ url: string }>(`update brainy.feeds set checked_at = now() where url in (
+    select url from brainy.feeds where checked_at is null or checked_at < now() - interval '1 hour' for update skip locked)
     returning url`)
   return rows.map(row => row.url)
 }
@@ -176,18 +176,18 @@ export async function readFeed(url: string, links: SavedLink[]): Promise<void> {
 
 /** The feeds subscribed to, with the items each listed last time. */
 export async function listFeeds(): Promise<{ url: string; listed: string[] }[]> {
-  const { rows } = await query<{ url: string; listed: string[] }>("select url, listed from reader.feeds order by url")
+  const { rows } = await query<{ url: string; listed: string[] }>("select url, listed from brainy.feeds order by url")
   return rows
 }
 /** Feeds subscribed to before, as an archive holds them, but those subscribed to already. */
 export async function restoreFeeds(feeds: { url: string; listed: string[] }[]): Promise<void> {
-  await query(`insert into reader.feeds (url, listed)
+  await query(`insert into brainy.feeds (url, listed)
     select url, array(select json_array_elements_text(listed)) from json_to_recordset($1) as feed(url text, listed json)
     on conflict do nothing`, [JSON.stringify(feeds)])
 }
 /** A feed no longer read; what it brought stays. */
 export async function unsubscribe(url: string): Promise<void> {
-  await query("delete from reader.feeds where url = $1", [url])
+  await query("delete from brainy.feeds where url = $1", [url])
 }
 
 /** Links saved to be read, each moved to the inbox; one never read is fetched again. */
@@ -199,9 +199,9 @@ export async function addLinks(links: SavedLink[]): Promise<void> { await insert
  *  is a lease, which a stale worker no longer holds. */
 export async function claimWork(rules: number, limit: number): Promise<Claim[]> {
   const { rows } = await query<{ id: number; url: string; since: Date; capture: boolean; hash: string | null; name: string; type: string; sourceUrl: string | null }>(
-    `update reader.articles set reading_since = date_trunc('milliseconds', clock_timestamp())
+    `update brainy.articles set reading_since = date_trunc('milliseconds', clock_timestamp())
     where id in (
-      select id from reader.articles
+      select id from brainy.articles
       where location <> 'trash'
         and (source_hash is null and error is null and url ~ '^https?://' or source_hash is not null and coalesce(tried_with, 0) < $1)
         and (reading_since is null or reading_since < now() - interval '5 minutes')
@@ -213,16 +213,16 @@ export async function claimWork(rules: number, limit: number): Promise<Claim[]> 
     ({ ...claim, rules, source: hash ? { bytes: await storage.get(claim.id, hash), name, type, url: sourceUrl } : null })))
 }
 
-/** A source the reader sent, kept with its article, new or saved before,
+/** A source the user sent, kept with its article, new or saved before,
  *  which moves to the inbox; and taken up to be read now. Its bytes go to the
  *  bucket while the transaction holds the article, so it is in the library
  *  from that moment, whatever reading it comes to, or else not at all. */
 export async function addSource(url: string, about: { title: string; site: string }, source: Source, rules: number): Promise<Claim> {
   return transaction(async run => {
-    const { rows: [{ id }] } = await run<{ id: number }>(`insert into reader.articles (url, title, site) values ($1, $2, $3)
+    const { rows: [{ id }] } = await run<{ id: number }>(`insert into brainy.articles (url, title, site) values ($1, $2, $3)
       on conflict (url) do update set location = 'inbox', moved_at = now() returning id`, [url, about.title, about.site])
     const kept = await putSource(id, source)
-    const { rows: [{ since }] } = await run<{ since: Date }>(`update reader.articles
+    const { rows: [{ since }] } = await run<{ since: Date }>(`update brainy.articles
       set source_hash = $2, source_name = $3, source_type = $4, source_url = $5,
         tried_with = null, reading_since = date_trunc('milliseconds', clock_timestamp()) where id = $1 returning reading_since as since`,
     [id, kept.hash, kept.name, kept.type, kept.url])
@@ -242,14 +242,14 @@ export async function finishWork(claim: Claim, outcome:
   const source = "source" in outcome && outcome.source ? await putSource(claim.id, outcome.source) : undefined
   const reading = "reading" in outcome ? await putReading(claim.id, outcome.reading, source?.hash) : undefined
   await transaction(async run => {
-    const { rowCount } = await run("select from reader.articles where id = $1 and reading_since = $2 and location <> 'trash' for update",
+    const { rowCount } = await run("select from brainy.articles where id = $1 and reading_since = $2 and location <> 'trash' for update",
       [claim.id, claim.since])
     if (!rowCount) return
     if ("feed" in outcome) {
       await keepFeed(run, claim.url, outcome.feed)
-      await run("delete from reader.articles where id = $1", [claim.id])
+      await run("delete from brainy.articles where id = $1", [claim.id])
     } else if ("error" in outcome) {
-      await run(`update reader.articles set error = case when markdown_hash is null then $2 end, tried_with = $3, reading_since = null
+      await run(`update brainy.articles set error = case when markdown_hash is null then $2 end, tried_with = $3, reading_since = null
         where id = $1`, [claim.id, outcome.error, claim.rules])
       if (source) await keepSource(run, claim.id, source)
     } else if (reading) await keep(run, claim.id, reading, source)
@@ -270,7 +270,7 @@ const putPictures = (id: number, images: EmbeddedImage[]) =>
 /** Put only bytes this article does not already keep, including its source. */
 async function putReading(id: number, { markdown, html, images, ...reading }: Reading, sourceHash?: string): Promise<KeptReading> {
   const { rows } = await query<{ hash: string | null }>(`select unnest(array[source_hash, markdown_hash, html_hash]) as hash
-    from reader.articles where id = $1 union all select hash from reader.images where article_id = $1`, [id])
+    from brainy.articles where id = $1 union all select hash from brainy.images where article_id = $1`, [id])
   const kept = new Set(rows.flatMap(({ hash }) => hash ? [hash] : []))
   if (sourceHash) kept.add(sourceHash)
   const [markdownHash, htmlHash] = await Promise.all([
@@ -284,7 +284,7 @@ async function putReading(id: number, { markdown, html, images, ...reading }: Re
 
 /** The pictures kept with an article that were downloaded, by where from. */
 export async function imagesKept(id: number): Promise<Map<string, string>> {
-  const { rows } = await query<{ url: string; hash: string }>("select url, hash from reader.images where article_id = $1 and url is not null", [id])
+  const { rows } = await query<{ url: string; hash: string }>("select url, hash from brainy.images where article_id = $1 and url is not null", [id])
   return new Map(rows.map(row => [row.url, row.hash]))
 }
 
@@ -292,14 +292,14 @@ export async function imagesKept(id: number): Promise<Map<string, string>> {
  *  around it there; false, changing none, if any can't be. Called only while
  *  the article row is locked, before its text changes. */
 async function moveHighlights(run: Run, id: number, text: string): Promise<boolean> {
-  const { rows } = await run<Quote & { id: number }>("select id, quote, prefix, suffix, position from reader.highlights where article_id = $1", [id])
+  const { rows } = await run<Quote & { id: number }>("select id, quote, prefix, suffix, position from brainy.highlights where article_id = $1", [id])
   const moved = []
   for (const highlight of rows) {
     const at = anchor(highlight, text)
     if (at === null) return false
     moved.push({ id: highlight.id, ...quoteOf(text, at, at + highlight.quote.length) })
   }
-  if (moved.length) await run(`update reader.highlights set prefix = place.prefix, suffix = place.suffix, position = place.position
+  if (moved.length) await run(`update brainy.highlights set prefix = place.prefix, suffix = place.suffix, position = place.position
     from unnest($1::int[], $2::text[], $3::text[], $4::int[]) as place(id, prefix, suffix, position) where highlights.id = place.id`,
   [moved.map(h => h.id), moved.map(h => h.prefix), moved.map(h => h.suffix), moved.map(h => h.position)])
   return true
@@ -312,14 +312,14 @@ async function keep(run: Run, id: number, reading: KeptReading, source?: KeptSou
   if (!(await moveHighlights(run, id, reading.text))) throw new HighlightConflict()
   if (source) await keepSource(run, id, source)
   // The source is typed as it is served as an original, which reading it again goes by too.
-  await run(`update reader.articles set (title, byline, site, image, published_at, excerpt, markdown_hash, html_hash, text, words, format,
+  await run(`update brainy.articles set (title, byline, site, image, published_at, excerpt, markdown_hash, html_hash, text, words, format,
     converted_with, tried_with) = ($2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $13), source_type = coalesce($14, source_type),
     error = null, reading_since = null, listened_to = case when markdown_hash = $8 then listened_to end where id = $1`,
   [id, reading.title, reading.byline, reading.site, reading.image, reading.publishedAt, reading.excerpt, reading.markdownHash,
     reading.htmlHash, reading.text, reading.words, reading.original?.format ?? null, reading.convertedWith, reading.original?.type ?? null])
   await keepPassages(run, id, reading.title, reading.text)
   const { images } = reading
-  if (images.length) await run(`insert into reader.images (article_id, hash, url)
+  if (images.length) await run(`insert into brainy.images (article_id, hash, url)
     select $1, * from unnest($2::text[], $3::text[]) on conflict do nothing`,
   [id, images.map(i => i.hash), images.map(i => i.url ?? null)])
 }
@@ -342,18 +342,18 @@ async function keepPassages(run: Run, id: number, title: string, text: string): 
     passages.push(words.slice(at, end))
     at = end
   }
-  await run(`with removed as (delete from reader.passages where article_id = $1)
-    insert into reader.passages (article_id, words) select $1, to_tsvector('english', p) from unnest($2::text[]) as p`, [id, passages])
+  await run(`with removed as (delete from brainy.passages where article_id = $1)
+    insert into brainy.passages (article_id, words) select $1, to_tsvector('english', p) from unnest($2::text[]) as p`, [id, passages])
 }
 
 async function keepSource(run: Run, id: number, source: KeptSource): Promise<void> {
-  await run("update reader.articles set source_hash = $2, source_name = $3, source_type = $4, source_url = $5 where id = $1",
+  await run("update brainy.articles set source_hash = $2, source_name = $3, source_type = $4, source_url = $5 where id = $1",
     [id, source.hash, source.name, source.type, source.url])
 }
 
 /** A location's latest articles, at most limit of them; ties by id, so a longer list starts as the shorter one did. */
 export async function listArticles(location: Location, limit: number): Promise<ArticleSummary[]> {
-  const { rows } = await query<ArticleSummary>(`select ${LISTED} from reader.articles where location = $1
+  const { rows } = await query<ArticleSummary>(`select ${LISTED} from brainy.articles where location = $1
     order by moved_at desc, id desc limit $2`, [location, limit])
   return rows
 }
@@ -364,15 +364,15 @@ export async function listArticles(location: Location, limit: number): Promise<A
 export async function search(words: string, limit: number): Promise<ArticleSummary[]> {
   const { rows } = await query<ArticleSummary>(`with asked as (select websearch_to_tsquery('english', $1) as q),
     matches as (
-      select article_id as id, ts_rank(words, q) as rank from reader.passages, asked where words @@ q
+      select article_id as id, ts_rank(words, q) as rank from brainy.passages, asked where words @@ q
       union all
-      select id, ts_rank(to_tsvector('english', byline), q) from reader.articles, asked where to_tsvector('english', byline) @@ q
+      select id, ts_rank(to_tsvector('english', byline), q) from brainy.articles, asked where to_tsvector('english', byline) @@ q
       union all
-      select id, ts_rank(to_tsvector('english', note), q) from reader.articles, asked where to_tsvector('english', note) @@ q
+      select id, ts_rank(to_tsvector('english', note), q) from brainy.articles, asked where to_tsvector('english', note) @@ q
       union all
-      select article_id, ts_rank(to_tsvector('english', note), q) from reader.highlights, asked where to_tsvector('english', note) @@ q
+      select article_id, ts_rank(to_tsvector('english', note), q) from brainy.highlights, asked where to_tsvector('english', note) @@ q
     )
-    select ${LISTED} from reader.articles join (select id, max(rank) as rank from matches group by id) as found using (id)
+    select ${LISTED} from brainy.articles join (select id, max(rank) as rank from matches group by id) as found using (id)
     where location <> 'trash' order by rank desc, id desc limit $2`, [words, limit])
   return rows
 }
@@ -424,15 +424,15 @@ export async function getArticle(id: number, form: "html" | "markdown"): Promise
   const { rows: [row] } = await query<Omit<Article, "reading"> & { hash: string | null }>(`select ${LISTED}, byline,
     published_at as "publishedAt", ${form}_hash as hash, source_type as type, ${minutes("words")} as minutes,
     listened_to as "listenedTo", coalesce(note, '') as note, (select coalesce(json_agg(h order by h.position), '[]') from (
-      select id, quote, prefix, suffix, position, coalesce(note, '') as note from reader.highlights where article_id = $1
-    ) as h) as highlights from reader.articles where id = $1`, [id])
+      select id, quote, prefix, suffix, position, coalesce(note, '') as note from brainy.highlights where article_id = $1
+    ) as h) as highlights from brainy.articles where id = $1`, [id])
   if (!row) return null
   const { hash, ...article } = row
   return { ...article, reading: await textIn(id, hash, true) }
 }
 
 export async function getImage(hash: string): Promise<Uint8Array | null> {
-  const { rows: [image] } = await query<{ id: number }>("select article_id as id from reader.images where hash = $1 limit 1", [hash])
+  const { rows: [image] } = await query<{ id: number }>("select article_id as id from brainy.images where hash = $1 limit 1", [hash])
   return image ? storage.get(image.id, hash) : null
 }
 
@@ -440,47 +440,47 @@ export async function getImage(hash: string): Promise<Uint8Array | null> {
  *  the file it was, read or not. */
 export async function getOriginal(id: number): Promise<OriginalFile | null> {
   const { rows: [file] } = await query<OriginalFile>(`select source_name as name, source_type as type, source_hash as hash
-    from reader.articles where id = $1 and source_hash is not null and (format is not null or url like 'file:%')`, [id])
+    from brainy.articles where id = $1 and source_hash is not null and (format is not null or url like 'file:%')`, [id])
   return file ?? null
 }
 
 /** An article that couldn't be read, waiting to be read again: from its source, if one was kept, or else fetched. */
 export async function retry(id: number): Promise<void> {
-  await query("update reader.articles set error = null, tried_with = null where id = $1 and error is not null", [id])
+  await query("update brainy.articles set error = null, tried_with = null where id = $1 and error is not null", [id])
 }
 export async function moveArticles(ids: number[], location: Location): Promise<void> {
-  await query("update reader.articles set location = $2, moved_at = now() where id = any($1::int[])", [ids, location])
+  await query("update brainy.articles set location = $2, moved_at = now() where id = any($1::int[])", [ids, location])
 }
 /** The only deletion: the trash's articles, with their highlights and pictures, then their files. */
 export async function emptyTrash(): Promise<void> {
-  const { rows } = await query<{ id: number }>("delete from reader.articles where location = 'trash' returning id")
+  const { rows } = await query<{ id: number }>("delete from brainy.articles where location = 'trash' returning id")
   await storage.removeArticles(rows.map(row => row.id))
 }
 export async function setProgress(id: number, progress: number, updatedAt: number): Promise<void> {
-  await query(`update reader.articles set progress = $2, progress_updated_at = $3 where id = $1 and progress_updated_at < $3`,
+  await query(`update brainy.articles set progress = $2, progress_updated_at = $3 where id = $1 and progress_updated_at < $3`,
     [id, Math.min(1, Math.max(0, progress)), updatedAt])
 }
 export async function setListened(id: number, block: number): Promise<void> {
   if (!Number.isInteger(block) || block < 0) throw new Error("Invalid listening position")
-  await query("update reader.articles set listened_to = $2 where id = $1", [id, block])
+  await query("update brainy.articles set listened_to = $2 where id = $1", [id, block])
 }
 
 export async function saveHighlight(articleId: number, quote: Quote): Promise<Highlight> {
   return transaction(async run => {
-    const { rows: [article] } = await run<{ text: string }>("select text from reader.articles where id = $1 for update", [articleId])
+    const { rows: [article] } = await run<{ text: string }>("select text from brainy.articles where id = $1 for update", [articleId])
     validateQuote(quote, article?.text ?? "")
     // The same words at the same place are one highlight, however often it is asked for.
     const { rows: [kept] } = await run<Highlight>(`select id, quote, prefix, suffix, position, coalesce(note, '') as note
-      from reader.highlights where article_id = $1 and position = $2 and quote = $3`, [articleId, quote.position, quote.quote])
+      from brainy.highlights where article_id = $1 and position = $2 and quote = $3`, [articleId, quote.position, quote.quote])
     if (kept) return kept
-    const { rows } = await run<Highlight>(`insert into reader.highlights (article_id, quote, prefix, suffix, position) values ($1, $2, $3, $4, $5)
+    const { rows } = await run<Highlight>(`insert into brainy.highlights (article_id, quote, prefix, suffix, position) values ($1, $2, $3, $4, $5)
       returning id, quote, prefix, suffix, position, '' as note`, [articleId, quote.quote, quote.prefix, quote.suffix, quote.position])
     return rows[0]
   })
 }
 /** Every article's id but the trash's, oldest first. */
 export async function keptIds(): Promise<number[]> {
-  const { rows } = await query<{ id: number }>("select id from reader.articles where location <> 'trash' order by moved_at, id")
+  const { rows } = await query<{ id: number }>("select id from brainy.articles where location <> 'trash' order by moved_at, id")
   return rows.map(row => row.id)
 }
 
@@ -496,10 +496,10 @@ export async function keptArticle(id: number): Promise<{
     converted_with as "convertedWith", error, note,
     case when source_hash is not null then json_build_object('name', source_name, 'type', source_type, 'url', source_url, 'format', format,
       'hash', source_hash) end as source,
-    (select coalesce(json_agg(json_build_object('hash', hash, 'url', url) order by hash), '[]') from reader.images i where i.article_id = a.id) as images,
+    (select coalesce(json_agg(json_build_object('hash', hash, 'url', url) order by hash), '[]') from brainy.images i where i.article_id = a.id) as images,
     (select coalesce(json_agg(json_build_object('quote', quote, 'prefix', prefix, 'suffix', suffix, 'position', position,
-      'note', coalesce(note, ''), 'createdAt', created_at) order by position), '[]') from reader.highlights h where h.article_id = a.id) as highlights
-    from reader.articles a where id = $1`, [id])
+      'note', coalesce(note, ''), 'createdAt', created_at) order by position), '[]') from brainy.highlights h where h.article_id = a.id) as highlights
+    from brainy.articles a where id = $1`, [id])
   if (!row) return null
   const { markdownHash, ...article } = row
   const [markdown, source, images] = await Promise.all([
@@ -518,7 +518,7 @@ export async function keptArticle(id: number): Promise<{
 export async function restoreArticle(article: KeptArticle, keepSource: ((id: number) => Promise<string>) | null, images: EmbeddedImage[],
   { html, text, words }: { html: string; text: string; words: number }): Promise<boolean> {
   return transaction(async run => {
-    const { rows: [row] } = await run<{ id: number }>(`insert into reader.articles (url, title, site, byline, image, published_at, excerpt,
+    const { rows: [row] } = await run<{ id: number }>(`insert into brainy.articles (url, title, site, byline, image, published_at, excerpt,
       location, moved_at, progress, progress_updated_at, listened_to, text, words, converted_with, tried_with, error,
       source_name, source_type, source_url, format, note)
       values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $15, $16, $17, $18, $19, $20, $21)
@@ -535,14 +535,14 @@ export async function restoreArticle(article: KeptArticle, keepSource: ((id: num
       keepSource?.(row.id) ?? null,
       ...putPictures(row.id, images),
     ])
-    await run("update reader.articles set markdown_hash = $2, html_hash = $3, source_hash = $4 where id = $1",
+    await run("update brainy.articles set markdown_hash = $2, html_hash = $3, source_hash = $4 where id = $1",
       [row.id, markdownHash, htmlHash, sourceHash])
     await keepPassages(run, row.id, article.title, text)
-    if (images.length) await run(`insert into reader.images (article_id, hash, url)
+    if (images.length) await run(`insert into brainy.images (article_id, hash, url)
       select $1, * from unnest($2::text[], $3::text[])`,
     [row.id, images.map(i => i.hash), images.map(i => i.url ?? null)])
     const { highlights } = article
-    if (highlights.length) await run(`insert into reader.highlights (article_id, quote, prefix, suffix, position, note, created_at)
+    if (highlights.length) await run(`insert into brainy.highlights (article_id, quote, prefix, suffix, position, note, created_at)
       select $1, quote, prefix, suffix, position, nullif(note, ''), created_at
       from unnest($2::text[], $3::text[], $4::text[], $5::int[], $6::text[], $7::timestamptz[]) as h(quote, prefix, suffix, position, note, created_at)`,
     [row.id, highlights.map(h => h.quote), highlights.map(h => h.prefix), highlights.map(h => h.suffix),
@@ -552,17 +552,17 @@ export async function restoreArticle(article: KeptArticle, keepSource: ((id: num
 }
 
 export async function setNote(id: number, note: string): Promise<void> {
-  await query("update reader.highlights set note = nullif($2, '') where id = $1", [id, validateNote(note)])
+  await query("update brainy.highlights set note = nullif($2, '') where id = $1", [id, validateNote(note)])
 }
 export async function setArticleNote(id: number, note: string): Promise<void> {
-  await query("update reader.articles set note = nullif($2, '') where id = $1", [id, validateNote(note)])
+  await query("update brainy.articles set note = nullif($2, '') where id = $1", [id, validateNote(note)])
 }
 export async function removeHighlight(id: number): Promise<void> {
-  await query("delete from reader.highlights where id = $1", [id])
+  await query("delete from brainy.highlights where id = $1", [id])
 }
 
 const SCHEMA = `
-  create table reader.articles (
+  create table brainy.articles (
     id integer generated always as identity primary key,
     url text not null unique, -- the link it was saved from, or for a file, file: and the hash of its bytes
     title text not null, byline text, site text not null,
@@ -583,42 +583,42 @@ const SCHEMA = `
     location text not null default 'inbox' check (location in ('inbox', 'feed', 'later', 'archive', 'trash')),
     moved_at timestamptz not null default now(), -- when saved, or last moved
     progress real not null default 0, -- how far it has been read, 0 to 1
-    progress_updated_at bigint not null default 0, -- when, by the reader's browser, so an older position never replaces a newer one
+    progress_updated_at bigint not null default 0, -- when, by the user's browser, so an older position never replaces a newer one
     listened_to integer, -- the block the voice last reached
-    note text -- the reader's note on the whole article
+    note text -- the user's note on the whole article
   );
-  create index articles_location on reader.articles (location, moved_at desc);
+  create index articles_location on brainy.articles (location, moved_at desc);
 
   -- The article's words, a passage at a time (see keepPassages), as search finds them.
-  create table reader.passages (
-    article_id integer not null references reader.articles on delete cascade,
+  create table brainy.passages (
+    article_id integer not null references brainy.articles on delete cascade,
     words tsvector not null
   );
-  create index passages_article on reader.passages (article_id);
-  create index passages_search on reader.passages using gin (words);
+  create index passages_article on brainy.passages (article_id);
+  create index passages_search on brainy.passages using gin (words);
 
   -- Every picture kept with an article: read out of its source, or downloaded as it was saved,
   -- once for each address it came from.
-  create table reader.images (
-    article_id integer not null references reader.articles on delete cascade,
+  create table brainy.images (
+    article_id integer not null references brainy.articles on delete cascade,
     hash text not null, -- of its bytes, its address: /images/hash
     url text, -- where it was downloaded from, if it was
     unique nulls not distinct (article_id, hash, url)
   );
-  create index images_by_hash on reader.images (hash);
+  create index images_by_hash on brainy.images (hash);
 
   -- A quote of the article's text, found by its words and the 32 characters either side (see lib/highlights).
-  create table reader.highlights (
+  create table brainy.highlights (
     id integer generated always as identity primary key,
-    article_id integer not null references reader.articles on delete cascade,
+    article_id integer not null references brainy.articles on delete cascade,
     quote text not null, prefix text not null, suffix text not null, position integer not null,
     note text,
     created_at timestamptz not null default now()
   );
-  create index highlights_article on reader.highlights (article_id, position);
+  create index highlights_article on brainy.highlights (article_id, position);
 
   -- A feed subscribed to, read again every hour (see claimFeeds).
-  create table reader.feeds (
+  create table brainy.feeds (
     url text primary key,
     listed text[] not null default '{}', -- the items it listed when last read, so only new ones are added
     checked_at timestamptz -- when it was last read; null, never

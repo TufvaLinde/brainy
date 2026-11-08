@@ -1,5 +1,5 @@
 /** What a file is, told once, here, and the article in it: the simplest
- *  formats read here, each of the others by its reader beside this one. */
+ *  formats read here, each of the others by a module of its own beside this one. */
 
 import { Defuddle } from "defuddle/node"
 import { parseHTML } from "linkedom"
@@ -256,7 +256,7 @@ async function readPage(document: Document, url = "about:blank"): Promise<Extrac
   const site = new URL(url).hostname
   const published = page.published ? new Date(page.published) : null
   const image = (page.image && URL.parse(page.image, url)?.href) || null
-  // Defuddle takes the page's own picture out of the article, for a reader to
+  // Defuddle takes the page's own picture out of the article, for a reading view to
   // show above it, as this one doesn't: one the page showed is put back, first.
   const kept = Array.from(page.content.matchAll(/<img\b[^>]*\bsrc="([^"]+)"/g), ([, src]) => loose(src))
   const taken = shown && image && ![shown, loose(image)].some((src) => kept.includes(src))

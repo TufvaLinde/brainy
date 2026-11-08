@@ -18,7 +18,7 @@ const OWN_BLOCK = /^(ADDRESS|ARTICLE|ASIDE|BLOCKQUOTE|DIV|DL|FIGURE|H[1-6]|HR|OL
 
 /** The id of a place in a book that its own links lead to (see lib/formats/epub),
  *  kept in the Markdown as an empty anchor. */
-const ANCHOR = /^reader-[a-f0-9]{20}$/
+const ANCHOR = /^brainy-[a-f0-9]{20}$/
 
 const bodyOf = (html: string) => parseHTML(`<!doctype html><html><body>${html}</body></html>`).document.body
 
@@ -94,7 +94,7 @@ turndown.addRule("footnotes", {
 turndown.addRule("link", {
   filter: (node) =>
     node.nodeName === "A" &&
-    (!/^(https?:|mailto:|#reader-)/i.test(node.getAttribute("href") ?? "") ||
+    (!/^(https?:|mailto:|#brainy-)/i.test(node.getAttribute("href") ?? "") ||
       (!node.textContent!.trim() && !node.querySelector("img"))),
   replacement: (content, node) => (/^#fnref:/.test((node as HTMLElement).getAttribute("href")!) ? "" : content),
 })
@@ -205,7 +205,7 @@ export function toMarkdown(html: string, title: string): string {
   // Text compared as its letters alone, as markup puts spaces anywhere.
   const letters = (text: string | null) => text!.replace(/\s+/g, "")
   // A book's anchors stay where what holds them goes, for the links that lead there.
-  const anchors = (element: Element) => element.querySelectorAll('a[id^="reader-"]')
+  const anchors = (element: Element) => element.querySelectorAll('a[id^="brainy-"]')
 
   const heading = body.querySelector("h1, h2, h3, h4, h5, h6")
   if (heading && letters(heading.textContent) === letters(title)) heading.replaceWith(...anchors(heading))
@@ -214,7 +214,7 @@ export function toMarkdown(html: string, title: string): string {
   // nowhere once the page is gone; a book's leads to its chapters, and stays.
   for (const list of body.querySelectorAll("ul, ol")) {
     const links = Array.from(list.querySelectorAll("a"))
-    const inPage = links.every((link) => /^#(?!reader-)/.test(link.getAttribute("href") ?? ""))
+    const inPage = links.every((link) => /^#(?!brainy-)/.test(link.getAttribute("href") ?? ""))
     const onlyLinks = letters(list.textContent) === links.map((link) => letters(link.textContent)).join("")
     if (links.length > 2 && inPage && onlyLinks) list.remove()
   }
@@ -222,7 +222,7 @@ export function toMarkdown(html: string, title: string): string {
   // Punctuation left on its own: a quote mark or bullet that was decoration,
   // where a book's link, as a note's back to its mark, ↩, is not.
   for (const paragraph of body.querySelectorAll("p")) {
-    if (!/[\p{L}\p{N}]/u.test(paragraph.textContent!) && !paragraph.querySelector('img, math, a[href^="#reader-"]')) {
+    if (!/[\p{L}\p{N}]/u.test(paragraph.textContent!) && !paragraph.querySelector('img, math, a[href^="#brainy-"]')) {
       paragraph.replaceWith(...anchors(paragraph))
     }
   }
@@ -400,7 +400,7 @@ export function contentsOf(html: string): { level: number; text: string; place: 
       .trim(),
     place,
     start: index,
-    anchored: inner.startsWith('<a id="reader-'),
+    anchored: inner.startsWith('<a id="brainy-'),
   }))
   const book = headings.some((heading) => heading.anchored)
   const entries = headings.filter((heading) => heading.text && (book ? heading.anchored : heading.level <= 3))

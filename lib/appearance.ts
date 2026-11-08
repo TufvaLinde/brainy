@@ -1,13 +1,13 @@
 /**
- * How the page looks, as the reader set it in this browser: theme, typeface,
+ * How the page looks, as the user set it in this browser: theme, typeface,
  * text size, line height and column width. Applied by a script before the page
- * is painted, so a dark reader never sees a white frame, and again by the menu
+ * is painted, so a dark-theme user never sees a white frame, and again by the menu
  * that sets it.
  */
 
 export type Appearance = { theme: "auto" | "light" | "dark"; font: "sans" | "serif"; size: number; lineHeight: number; width: number }
 
-export const KEY = "reader.appearance"
+export const KEY = "brainy.appearance"
 
 /** Text sizes in px, line heights in multiples of the text size, and column widths in rem. */
 export const SIZES = [15, 17, 19, 21, 23, 26, 30]

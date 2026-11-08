@@ -3,22 +3,22 @@ import { strFromU8, strToU8, zipSync } from "fflate"
 import { parseHTML } from "linkedom"
 import { inProcess, Pictures, unzip } from "@/lib/files"
 
-export type DocumentFormat = { reader: string; format: string; type: string }
+export type DocumentFormat = { from: string; format: string; type: string }
 
-/** Documents and markup Pandoc reads, by extension, each with its Pandoc
- *  reader, its name and the type its original is served as. Markup is served
+/** Documents and markup Pandoc reads, by extension, each with the format
+ *  Pandoc reads it from, its name and the type its original is served as. Markup is served
  *  as text, which a browser shows as it is written. */
 export const DOCUMENT_FORMATS: Record<string, DocumentFormat> = {
-  docx: { reader: "docx", format: "DOCX", type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" },
-  odt: { reader: "odt", format: "ODT", type: "application/vnd.oasis.opendocument.text" },
-  pptx: { reader: "pptx", format: "PPTX", type: "application/vnd.openxmlformats-officedocument.presentationml.presentation" },
-  xlsx: { reader: "xlsx", format: "XLSX", type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" },
-  rtf: { reader: "rtf", format: "RTF", type: "application/rtf" },
-  fb2: { reader: "fb2", format: "FB2", type: "application/x-fictionbook+xml" },
-  csv: { reader: "csv", format: "CSV", type: "text/csv" },
-  tsv: { reader: "tsv", format: "TSV", type: "text/tab-separated-values" },
-  ipynb: { reader: "ipynb", format: "IPYNB", type: "application/x-ipynb+json" },
-  opml: { reader: "opml", format: "OPML", type: "text/x-opml" },
+  docx: { from: "docx", format: "DOCX", type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" },
+  odt: { from: "odt", format: "ODT", type: "application/vnd.oasis.opendocument.text" },
+  pptx: { from: "pptx", format: "PPTX", type: "application/vnd.openxmlformats-officedocument.presentationml.presentation" },
+  xlsx: { from: "xlsx", format: "XLSX", type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" },
+  rtf: { from: "rtf", format: "RTF", type: "application/rtf" },
+  fb2: { from: "fb2", format: "FB2", type: "application/x-fictionbook+xml" },
+  csv: { from: "csv", format: "CSV", type: "text/csv" },
+  tsv: { from: "tsv", format: "TSV", type: "text/tab-separated-values" },
+  ipynb: { from: "ipynb", format: "IPYNB", type: "application/x-ipynb+json" },
+  opml: { from: "opml", format: "OPML", type: "text/x-opml" },
 }
 const MARKUP = {
   rst: "rst", rest: "rst", tex: "latex", latex: "latex", org: "org",
@@ -29,8 +29,8 @@ const MARKUP = {
   twiki: "twiki", tikiwiki: "tikiwiki", haddock: "haddock",
   docbook: "docbook", dbk: "docbook", jats: "jats",
 }
-for (const [extension, reader] of Object.entries(MARKUP)) {
-  DOCUMENT_FORMATS[extension] = { reader, format: extension.toUpperCase(), type: "text/plain" }
+for (const [extension, from] of Object.entries(MARKUP)) {
+  DOCUMENT_FORMATS[extension] = { from, format: extension.toUpperCase(), type: "text/plain" }
 }
 
 // Pandoc's memory grows a megabyte or less at a time, and V8 counts all of it
@@ -41,9 +41,9 @@ for (const [extension, reader] of Object.entries(MARKUP)) {
 // with its heap instead. A Node that lacks it says so, and converts as before.
 const PANDOC = `
 require('node:v8').setFlagsFromString('--external-memory-accounted-in-global-limit');
-process.once('message', ({ bytes, reader }) => (async () => {
+process.once('message', ({ bytes, from }) => (async () => {
   const { convert } = await import('pandoc-wasm');
-  const result = await convert({ from: reader, to: 'html5', standalone: true,
+  const result = await convert({ from, to: 'html5', standalone: true,
     'input-files': ['input'], 'extract-media': 'media', 'html-math-method': { method: 'mathml' }, wrap: 'none' },
     null, { input: new Blob([bytes]) });
   if (!result.stdout.trim()) throw new Error('No readable content was found in this document');
@@ -57,13 +57,13 @@ process.once('message', ({ bytes, reader }) => (async () => {
 let converting: Promise<unknown> = Promise.resolve()
 
 /** Convert office documents and markup with Pandoc, preserving images and maths. */
-export async function documentToHtml(bytes: Uint8Array, { reader }: DocumentFormat) {
+export async function documentToHtml(bytes: Uint8Array, { from }: DocumentFormat) {
   // An office document is a zip, unzipped here first to refuse one that would inflate past the limit.
-  if (["docx", "odt", "pptx", "xlsx"].includes(reader)) {
+  if (["docx", "odt", "pptx", "xlsx"].includes(from)) {
     const files = unzip(bytes)
-    if (reader === "xlsx") bytes = withSharedStrings(files)
+    if (from === "xlsx") bytes = withSharedStrings(files)
   }
-  const job = converting.then(() => inProcess<{ html: string; media: [string, Uint8Array][] }>(PANDOC, { bytes, reader }))
+  const job = converting.then(() => inProcess<{ html: string; media: [string, Uint8Array][] }>(PANDOC, { bytes, from }))
   converting = job.catch(() => {})
   const converted = await job
 
@@ -120,7 +120,7 @@ function withSharedStrings(files: Record<string, Uint8Array>): Uint8Array {
   const rels = xml(strFromU8(files[relsPath]))
   if (!Array.from(rels.querySelectorAll("Relationship")).some((node) => node.getAttribute("Type")?.endsWith("/sharedStrings"))) {
     const relationship = rels.createElement("Relationship")
-    relationship.setAttribute("Id", "readerSharedStrings")
+    relationship.setAttribute("Id", "brainySharedStrings")
     relationship.setAttribute("Type", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings")
     relationship.setAttribute("Target", "sharedStrings.xml")
     rels.documentElement.append(relationship)

@@ -2,7 +2,7 @@
  * A link, fetched: the source of the article at it, as it came, which is read
  * as any file is (see lib/formats), or, at a feed, the links it lists, each
  * to be fetched in turn, and again as it adds more (see lib/library). A page
- * the server can't get, the reader's own browser can, and the bookmarklet
+ * the server can't get, the user's own browser can, and the bookmarklet
  * saves it from there.
  * And the pictures an article and its page name on the web, downloaded to be
  * kept with it as it is saved.
@@ -31,7 +31,7 @@ import { imagesOf } from "@/lib/markdown"
 // Who is asking, said plainly: a browser's name gets past some walls, but
 // isn't true.
 const HEADERS = {
-  "user-agent": "Mozilla/5.0 (compatible; Reader/1.0)",
+  "user-agent": "Mozilla/5.0 (compatible; Brainy/1.0)",
   accept: "text/html,application/xhtml+xml,application/pdf;q=0.9,*/*;q=0.8",
   "accept-language": "en",
 }
@@ -89,7 +89,7 @@ async function get(url: string): Promise<Response | null> {
   const waiting = new AbortController()
   const timer = setTimeout(() => waiting.abort(), 15_000)
   // Hacker News' feed refuses a browser's name from what it can tell is no browser.
-  const headers = url === TOP_STORIES ? { ...HEADERS, "user-agent": "Reader/1.0" } : HEADERS
+  const headers = url === TOP_STORIES ? { ...HEADERS, "user-agent": "Brainy/1.0" } : HEADERS
   try {
     return await fetch(url, { headers, signal: waiting.signal })
   } catch {
