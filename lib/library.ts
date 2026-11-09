@@ -13,6 +13,7 @@ import { restoreLibrary } from "@/lib/archive"
 import { extract, isRecording } from "@/lib/formats"
 import { ImportError } from "@/lib/files"
 import { HighlightConflict } from "@/lib/highlights"
+import { labelPending } from "@/lib/hybrid/labeller"
 import { parseLinkList, type ArticleLink } from "@/lib/links"
 import { render, toMarkdown, wordCount } from "@/lib/markdown"
 import { removeUpload, takeUpload } from "@/lib/storage"
@@ -54,9 +55,11 @@ async function drain(): Promise<void> {
   }))
   for (;;) {
     const claims = await db.claimWork(CONVERTER, READERS)
-    if (!claims.length) return
+    if (!claims.length) break
     await Promise.all(claims.map(work))
   }
+  // Each new reading goes to the cloud agent at once, so it reaches devices already catalogued.
+  await labelPending(48).catch(error => console.error("Cataloguing failed:", error instanceof Error ? error.message : error))
 }
 
 /** Fetch a link and read it, or read a kept source; why it couldn't be, if it

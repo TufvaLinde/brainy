@@ -1,0 +1,21 @@
+name: Brainy
+options:
+  bundleIdPrefix: com.tufvalinde
+  deploymentTarget:
+    iOS: "26.0"
+configFiles:
+  Debug: Config.xcconfig
+  Release: Config.xcconfig
+targets:
+  Brainy:
+    type: application
+    platform: iOS
+    sources: [Brainy]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(BUNDLE_ID)
+        SWIFT_VERSION: "5.0"
+        TARGETED_DEVICE_FAMILY: "1,2"
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_FILE: Brainy/Info.plist
+        CODE_SIGN_STYLE: Automatic

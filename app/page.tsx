@@ -1,5 +1,7 @@
 import { after } from "next/server"
 import { Library } from "@/components/library"
+import { SphereSection } from "@/components/sphere/app"
+import { DeviceFooter } from "@/components/sphere/footer"
 import { FILE_ACCEPT } from "@/lib/formats"
 import { processPending } from "@/lib/library"
 import { LOCATIONS, listArticles, listFeeds, search } from "@/lib/db"
@@ -30,7 +32,10 @@ export default async function LibraryPage({
   after(processPending)
 
   return (
-    <Library
+    <>
+      {/* The agent's view of the same library, above the lists; not over a search's results. */}
+      {!query && <SphereSection />}
+      <Library
       // A fresh one for each list: what it hid is about the cards it showed.
       key={query || location}
       cards={found.slice(0, limit)}
@@ -40,6 +45,8 @@ export default async function LibraryPage({
       error={error}
       accept={FILE_ACCEPT}
       feeds={feeds}
-    />
+      />
+      <DeviceFooter />
+    </>
   )
 }

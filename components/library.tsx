@@ -260,7 +260,7 @@ export function Library({
         <Tabs value={location}>
           <TabsList variant="underline">
             {LOCATIONS.map((place) => (
-              <TabsTab key={place} value={place} nativeButton={false} render={<Link href={place === "inbox" ? "/" : `/?in=${place}`} />}>
+              <TabsTab key={place} value={place} nativeButton={false} render={<Link href={place === "inbox" ? "/" : `/?in=${place}`} scroll={false} />}>
                 {NAMES[place]}
               </TabsTab>
             ))}

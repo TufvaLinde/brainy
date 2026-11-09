@@ -7,3 +7,6 @@ next-env.d.ts
 .vercel
 archive/
 .claude
+ios/build/
+ios/**/xcuserdata/
+*.xcuserstate

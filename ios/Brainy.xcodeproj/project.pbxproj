@@ -1,0 +1,353 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		128AD4A1FE43D61A465B8FC8 /* OnDeviceModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F4574DA57ABFC71E96CFAF4 /* OnDeviceModel.swift */; };
+		1A9D93A6FE5473BBBD845CAD /* WebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B12F5DB4057FFD6BA44920 /* WebView.swift */; };
+		20EEC2511048292D5D8B5C12 /* BrainyApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE1B2F80A8CD40FE8DE5F78F /* BrainyApp.swift */; };
+		21FA72144313375EC787ED02 /* AppIcon60x60@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 3C76A2CB1F77F9D7722B3053 /* AppIcon60x60@2x.png */; };
+		52E52FD23EECB58881CBB7AD /* AppIcon76x76@2x~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = 8A024FE047BD8B97AD6DEB5B /* AppIcon76x76@2x~ipad.png */; };
+		604C60C8C6E6B27D6BBC26B7 /* Bridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4EA166C0CECBE0C9E05D645 /* Bridge.swift */; };
+		672A5A8EE58400E7CD9A7148 /* AppIcon60x60@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 8EC4A2F7A776128FC9E6B3A9 /* AppIcon60x60@3x.png */; };
+		F0CE676B4CDDDDD214570105 /* Listener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 662AED983EC7DB436A47D8E4 /* Listener.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		03E65B8EBF407F7B36FD1946 /* Brainy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Brainy.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		3B61F762AB5484A8FDC5A52A /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
+		3C76A2CB1F77F9D7722B3053 /* AppIcon60x60@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon60x60@2x.png"; sourceTree = "<group>"; };
+		4F4574DA57ABFC71E96CFAF4 /* OnDeviceModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnDeviceModel.swift; sourceTree = "<group>"; };
+		662AED983EC7DB436A47D8E4 /* Listener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Listener.swift; sourceTree = "<group>"; };
+		8A024FE047BD8B97AD6DEB5B /* AppIcon76x76@2x~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon76x76@2x~ipad.png"; sourceTree = "<group>"; };
+		8EC4A2F7A776128FC9E6B3A9 /* AppIcon60x60@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon60x60@3x.png"; sourceTree = "<group>"; };
+		B1B12F5DB4057FFD6BA44920 /* WebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebView.swift; sourceTree = "<group>"; };
+		B4EA166C0CECBE0C9E05D645 /* Bridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bridge.swift; sourceTree = "<group>"; };
+		CE1B2F80A8CD40FE8DE5F78F /* BrainyApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrainyApp.swift; sourceTree = "<group>"; };
+		EAA85C3CFC0914F5F0E0F0AC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		00EDB8E42C2395DDBA105C08 = {
+			isa = PBXGroup;
+			children = (
+				89AB242F87741A89BA1AD4CE /* Brainy */,
+				0C16195B92BFC9D3041437BA /* ios */,
+				0FBEACE6A73DFBB13B6438B1 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		0C16195B92BFC9D3041437BA /* ios */ = {
+			isa = PBXGroup;
+			children = (
+				3B61F762AB5484A8FDC5A52A /* Config.xcconfig */,
+			);
+			name = ios;
+			path = .;
+			sourceTree = "<group>";
+		};
+		0FBEACE6A73DFBB13B6438B1 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				03E65B8EBF407F7B36FD1946 /* Brainy.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		10D68869EC960083648BD0EF /* Icons */ = {
+			isa = PBXGroup;
+			children = (
+				3C76A2CB1F77F9D7722B3053 /* AppIcon60x60@2x.png */,
+				8EC4A2F7A776128FC9E6B3A9 /* AppIcon60x60@3x.png */,
+				8A024FE047BD8B97AD6DEB5B /* AppIcon76x76@2x~ipad.png */,
+			);
+			path = Icons;
+			sourceTree = "<group>";
+		};
+		89AB242F87741A89BA1AD4CE /* Brainy */ = {
+			isa = PBXGroup;
+			children = (
+				CE1B2F80A8CD40FE8DE5F78F /* BrainyApp.swift */,
+				B4EA166C0CECBE0C9E05D645 /* Bridge.swift */,
+				EAA85C3CFC0914F5F0E0F0AC /* Info.plist */,
+				662AED983EC7DB436A47D8E4 /* Listener.swift */,
+				4F4574DA57ABFC71E96CFAF4 /* OnDeviceModel.swift */,
+				B1B12F5DB4057FFD6BA44920 /* WebView.swift */,
+				10D68869EC960083648BD0EF /* Icons */,
+			);
+			path = Brainy;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		73BDF7C6BF1186BB8B904FA6 /* Brainy */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5B8ECBEAF192D9619F82B170 /* Build configuration list for PBXNativeTarget "Brainy" */;
+			buildPhases = (
+				B8F6538CF1C9BE54F50A2C69 /* Sources */,
+				275DE7B2F35D5B31D507C1D3 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Brainy;
+			packageProductDependencies = (
+			);
+			productName = Brainy;
+			productReference = 03E65B8EBF407F7B36FD1946 /* Brainy.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		66103FF5D33D89AD49D71300 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					73BDF7C6BF1186BB8B904FA6 = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = DD11A92F6AD71901A45E3501 /* Build configuration list for PBXProject "Brainy" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 00EDB8E42C2395DDBA105C08;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 0FBEACE6A73DFBB13B6438B1 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				73BDF7C6BF1186BB8B904FA6 /* Brainy */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		275DE7B2F35D5B31D507C1D3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				21FA72144313375EC787ED02 /* AppIcon60x60@2x.png in Resources */,
+				672A5A8EE58400E7CD9A7148 /* AppIcon60x60@3x.png in Resources */,
+				52E52FD23EECB58881CBB7AD /* AppIcon76x76@2x~ipad.png in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		B8F6538CF1C9BE54F50A2C69 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				20EEC2511048292D5D8B5C12 /* BrainyApp.swift in Sources */,
+				604C60C8C6E6B27D6BBC26B7 /* Bridge.swift in Sources */,
+				F0CE676B4CDDDDD214570105 /* Listener.swift in Sources */,
+				128AD4A1FE43D61A465B8FC8 /* OnDeviceModel.swift in Sources */,
+				1A9D93A6FE5473BBBD845CAD /* WebView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		396DE716F472EACBE61A44A3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = T65SD5S9YA;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Brainy/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "$(BUNDLE_ID)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		54BE213C3AF61E0A0E89BE93 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = T65SD5S9YA;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Brainy/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "$(BUNDLE_ID)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		80A407ED93506985BA893737 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 3B61F762AB5484A8FDC5A52A /* Config.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		E907D6D4B89174EF75D21DF9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 3B61F762AB5484A8FDC5A52A /* Config.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		5B8ECBEAF192D9619F82B170 /* Build configuration list for PBXNativeTarget "Brainy" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				54BE213C3AF61E0A0E89BE93 /* Debug */,
+				396DE716F472EACBE61A44A3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		DD11A92F6AD71901A45E3501 /* Build configuration list for PBXProject "Brainy" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				80A407ED93506985BA893737 /* Debug */,
+				E907D6D4B89174EF75D21DF9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 66103FF5D33D89AD49D71300 /* Project object */;
+}

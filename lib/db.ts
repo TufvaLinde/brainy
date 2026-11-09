@@ -134,8 +134,9 @@ async function ready(): Promise<void> {
   })().catch(error => { db.ready = undefined; throw error })
 }
 
-const query: Run = async (sql, values) => { await ready(); return database().pool.query(sql, values) }
-const transaction = async <T>(work: (run: Run) => Promise<T>) => { await ready(); return atomic(database().pool, work) }
+/** Shared with lib/hybrid, which keeps its own schema beside this one. */
+export const query: Run = async (sql, values) => { await ready(); return database().pool.query(sql, values) }
+export const transaction = async <T>(work: (run: Run) => Promise<T>) => { await ready(); return atomic(database().pool, work) }
 
 const minutes = (words: string) => `greatest(1, round(${words} / ${WORDS_PER_MINUTE}.0))::int`
 const LISTED = `id, url, title, site, image, excerpt, location, progress, format,

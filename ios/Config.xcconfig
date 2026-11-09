@@ -1,0 +1,5 @@
+// Where the web app is deployed: the host only, no https:// (for example brainy-abc123.vercel.app).
+BRAINY_HOST = brainy-neon.vercel.app
+
+// Your own reverse-DNS prefix keeps the bundle id unique to your Apple ID.
+BUNDLE_ID = com.tufvalinde.brainy
